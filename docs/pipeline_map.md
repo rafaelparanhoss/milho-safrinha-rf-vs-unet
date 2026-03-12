@@ -48,9 +48,9 @@ Notebook sequence:
 - Final U-Net post-processing notebook: `notebooks/unet/05_unet_postprocess_c10.ipynb`.
 - `notebooks/analysis/analysis_unet_vs_rf_area.ipynb` remains complementary analysis (does not replace canonical `05`).
 - `notebooks/archive/*` remains in public repository but marked as legacy/non-canonical.
-- `gee/unet/export_unet_inputs_gtv2_mt_2023.js` is kept as combined legacy entrypoint; canonical operation uses the two split scripts.
+- MT boundary asset used by scripts: `projects/ee-rafaelparanhos/assets/UF`.
 
-## Points to Confirm
-- GEE `table` asset ID used for MT boundary.
-- Final naming/location convention for full U-Net prediction raster in each run.
-- Whether a future cleanup should deprecate the combined legacy script after a few release cycles.
+## Operational Conventions (fixed)
+- Official single run id: `unet_mt2023_v2_run1`.
+- Official full prediction output: `/content/drive/MyDrive/unet_preds_mt2023_v1/unet_mt2023_pred_full.tif`.
+- If a new output folder is needed later, it should be changed manually outside the canonical baseline.

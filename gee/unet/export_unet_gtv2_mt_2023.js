@@ -12,7 +12,8 @@
 // ==============================
 // A) ROI: MT
 // ==============================
-var estados  = ee.FeatureCollection(table);
+var UF_ASSET = 'projects/ee-rafaelparanhos/assets/UF';
+var estados  = ee.FeatureCollection(UF_ASSET);
 var estadoMT = estados.filter(ee.Filter.eq('SIGLA_UF', 'MT')).first();
 var geomMT   = estadoMT.geometry();
 

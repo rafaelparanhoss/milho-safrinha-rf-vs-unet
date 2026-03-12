@@ -22,5 +22,5 @@
 - Papel: avaliação local (métricas por polígono) no notebook `analysis_unet_vs_rf_metrics.ipynb`.
 
 ### Limites administrativos (UF MT)
-- Fonte usada via variável `table` nos scripts GEE para filtrar `SIGLA_UF = "MT"`.
-- Asset ID explícito no repositório: **a confirmar**.
+- Fonte usada para filtrar `SIGLA_UF = "MT"` nos scripts GEE.
+- Asset: `projects/ee-rafaelparanhos/assets/UF`.

@@ -16,7 +16,7 @@
 - `unet_mt_2023_gtv2_x*_y*.tif` (GeoTIFF): GTv2 labels (`gt_train`, `gt_test`, `gt_val`).
 - `shard_*.npz` (NPZ): train/val/test shard datasets.
 - `best.pt`, `last.pt` (checkpoint files).
-- `unet_mt2023_pred_full.tif` (GeoTIFF, final run name/location a confirmar).
+- `/content/drive/MyDrive/unet_preds_mt2023_v1/unet_mt2023_pred_full.tif` (GeoTIFF): full prediction raster.
 - `unet_mt2023_pred_c10.tif` (GeoTIFF uint8): final U-Net post-processed output (`0/1/255`).
 - `area_and_agreement_unet_vs_rf.json` (JSON): area/agreement summary from canonical post-process notebook.
 

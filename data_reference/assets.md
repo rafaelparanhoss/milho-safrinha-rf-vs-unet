@@ -6,7 +6,7 @@
 - `projects/ee-rafaelparanhos/assets/SAMPLES_FINAL` (`class`, `id`)
 - `projects/ee-rafaelparanhos/assets/VAL_FINAL` (`class`, `id`)
 - `projects/mapbiomas-public/assets/brazil/lulc/collection10/mapbiomas_brazil_collection10_coverage_v2`
-- `table` (state boundaries; asset ID a confirmar)
+- `projects/ee-rafaelparanhos/assets/UF` (state boundaries)
 
 ### Expected RF Exports
 - `c10_agri_mt_2023_1_255` (GeoTIFF)
@@ -40,8 +40,4 @@
 - `/content/drive/MyDrive/unet_dataset_mt2023_v2/shards/train/shard_*.npz`
 - `/content/drive/MyDrive/unet_dataset_mt2023_v2/shards/val/shard_*.npz`
 - `/content/drive/MyDrive/unet_dataset_mt2023_v2/shards/test/shard_*.npz`
-- `manifest_tiles.csv` (path may vary by notebook run; a confirmar)
-
-## Legacy Script (kept)
-- `gee/unet/export_unet_inputs_gtv2_mt_2023.js`
-- Status: combined legacy entrypoint for backward compatibility, not the preferred canonical execution path.
+- `/content/drive/MyDrive/unet_dataset_mt2023_v2/logs/manifest_tiles.csv`

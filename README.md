@@ -27,6 +27,7 @@ The project compares a classical pixel-based model (RF) and a deep learning segm
 - GEE sample assets:
   - `projects/ee-rafaelparanhos/assets/SAMPLES_FINAL`
   - `projects/ee-rafaelparanhos/assets/VAL_FINAL`
+  - `projects/ee-rafaelparanhos/assets/UF`
 
 ## Repository Structure
 ```text
@@ -37,7 +38,6 @@ gee/
   unet/
     export_unet_mosaic_c10_mt_2023.js      # canonical: mosaic + c10mask export
     export_unet_gtv2_mt_2023.js            # canonical: GTv2 label export
-    export_unet_inputs_gtv2_mt_2023.js     # combined legacy entrypoint (kept for compatibility)
 
 notebooks/
   unet/
@@ -95,11 +95,13 @@ data_reference/
 
 ## Limitations
 - Paths in notebooks are configured for Google Drive/Colab and local runtime assumptions.
-- Some operational IDs/paths remain environment-specific (for example, `table` asset in GEE scripts).
+- Execution still depends on GEE account permissions and available assets in the target environment.
 - Large output artifacts are intentionally not versioned in this repository.
 
 ## Current Status
 - Canonical RF and U-Net flows are documented and separated operationally.
+- Official U-Net baseline uses one run: `unet_mt2023_v2_run1`.
+- Official full prediction output path: `/content/drive/MyDrive/unet_preds_mt2023_v1/unet_mt2023_pred_full.tif`.
 - `analysis/` notebooks are complementary (not canonical execution path).
 - `archive/` notebooks are legacy and kept for traceability.
 

@@ -55,9 +55,10 @@ var simplifyTol = 30;
 // ---- Assets ----
 var SAMPLES_ASSET = 'projects/ee-rafaelparanhos/assets/SAMPLES_FINAL';
 var VAL_ASSET     = 'projects/ee-rafaelparanhos/assets/VAL_FINAL';
+var UF_ASSET      = 'projects/ee-rafaelparanhos/assets/UF';
 
 // ---- UF / ROI ----
-var estados  = ee.FeatureCollection(table);
+var estados  = ee.FeatureCollection(UF_ASSET);
 var estadoMT = estados.filter(ee.Filter.eq('SIGLA_UF', 'MT')).first();
 var geomMT   = estadoMT.geometry();
 

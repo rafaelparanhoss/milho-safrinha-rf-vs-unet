@@ -5,7 +5,7 @@ Map milho safrinha in Mato Grosso (MT) for 2023 and compare RF vs U-Net outputs 
 
 ## Study Area
 - Mato Grosso (MT), filtered in GEE by `SIGLA_UF = "MT"`.
-- GEE `table` asset ID for state boundaries: a confirmar.
+- GEE UF asset: `projects/ee-rafaelparanhos/assets/UF`.
 
 ## Period
 - `2023-02-01` to `2023-05-31`.
@@ -33,5 +33,6 @@ Notebook pipeline:
 - Legacy: `notebooks/archive/*`
 
 ## Important Operational Note
-- `gee/unet/export_unet_inputs_gtv2_mt_2023.js` is kept as a combined legacy entrypoint.
-- Canonical execution for publication uses the split scripts (`mosaic/c10` and `gtv2`) to avoid commented-block ambiguity.
+- Canonical execution uses split scripts for U-Net export:
+  - `gee/unet/export_unet_mosaic_c10_mt_2023.js`
+  - `gee/unet/export_unet_gtv2_mt_2023.js`
