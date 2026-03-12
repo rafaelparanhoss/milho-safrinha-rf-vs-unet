@@ -1,0 +1,3 @@
+# Assets
+
+Placeholder de assets.
