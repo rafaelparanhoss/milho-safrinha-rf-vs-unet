@@ -1,9 +1,18 @@
 /****************************************************
- * UNET INPUT EXPORT — MT 2023 (Fev–Mai) — TILED/BATCH
- * - Exporta o mesmo mosaico do RF (21 bandas, 0–1)
- * - Exporta máscara C10 (agri 0/1) no mesmo tile
- * - SEM aplicar máscara no mosaico (máscara fica pro pós)
+ * UNET EXPORT (COMBINED, LEGACY ENTRYPOINT)
+ * MT 2023 (Feb-May) - tiled / batch
+ *
+ * Canonical split scripts:
+ * - gee/unet/export_unet_mosaic_c10_mt_2023.js
+ * - gee/unet/export_unet_gtv2_mt_2023.js
+ *
+ * This file remains for backward compatibility and can
+ * run both exports without manual comment/uncomment.
  ****************************************************/
+
+// Toggle blocks explicitly (no manual commented exports)
+var RUN_EXPORT_MOSAIC_C10 = true;
+var RUN_EXPORT_GTV2 = true;
 
 // ==============================
 // A) ROI: MT
@@ -16,42 +25,52 @@ var roi      = geomMT;
 Map.centerObject(estadoMT, 6);
 
 // ==============================
-// B) Parâmetros do export
+// B) Shared export parameters
 // ==============================
-
-// Tamanho do tile em graus
 var TILE_DEG = 1.0;
 
-// Export em lotes
-var BATCH_START = 0;   // 0, depois 40, depois 80, ...
-var BATCH_SIZE  = 170;  // quantas tasks criar por execução do script
+var BATCH_START = 0;   // 0, then 40, 80, ...
+var BATCH_SIZE  = 170; // tasks per script run
 
-// Bounding box aproximado de MT
 var LON_MIN = -62.0;
 var LON_MAX = -49.0;
 var LAT_MIN = -19.0;
 var LAT_MAX =  -6.0;
 
-// Drive
 var DRIVE_FOLDER = 'GEE_Exports';
 var PREFIX = 'unet_mt_2023';
 
-// Export mosaico como UInt16 (reduz tamanho): no Colab dividir por 10000
 var EXPORT_U16 = true;
 var SCALE_U16  = 10000;
 
-// ==============================
-// C) Landsat C2 L2: cloud mask + EVI2 (igual RF)
-// ==============================
 var startDate = ee.Date('2023-02-01');
 var endDate   = ee.Date('2023-05-31');
 
+function safeTag(n) {
+  return String(n.toFixed(2)).replace(/\./g, 'p');
+}
+
+// ==============================
+// C) Shared data: C10 agri mask
+// ==============================
+var c10 = ee.Image('projects/mapbiomas-public/assets/brazil/lulc/collection10/mapbiomas_brazil_collection10_coverage_v2');
+var agriMask2023 = c10.select('classification_2023')
+  .remap([39, 41, 62, 20], [1, 1, 1, 0])
+  .eq(1)
+  .clip(geomMT)
+  .rename('agri');
+
+Map.addLayer(agriMask2023.selfMask(), {palette:['00FF00']}, 'C10 agri mask');
+
+// ==============================
+// D) Shared Landsat helpers
+// ==============================
 function maskLandsatSR(image) {
   var qa = image.select('QA_PIXEL');
-  var mask = qa.bitwiseAnd(1 << 3).eq(0)   // cloud
-    .and(qa.bitwiseAnd(1 << 4).eq(0))      // cloud shadow
-    .and(qa.bitwiseAnd(1 << 5).eq(0))      // snow
-    .and(qa.bitwiseAnd(1 << 2).eq(0));     // cirrus
+  var mask = qa.bitwiseAnd(1 << 3).eq(0)
+    .and(qa.bitwiseAnd(1 << 4).eq(0))
+    .and(qa.bitwiseAnd(1 << 5).eq(0))
+    .and(qa.bitwiseAnd(1 << 2).eq(0));
   return image.updateMask(mask);
 }
 
@@ -77,18 +96,12 @@ function getCollectionL8L9(startDate, endDate, roi) {
     });
 }
 
-var col2023 = getCollectionL8L9(startDate, endDate, roi);
-print('Landsat (L8+L9) 2023 size:', col2023.size());
-
-// ==============================
-// D) Mosaico 21 bandas normalizado
-// ==============================
 function reduceAndNormalize(collection, roi) {
   var mosaic = collection.reduce(
     ee.Reducer.median().combine(ee.Reducer.percentile([20, 80]), '', true)
   ).clip(roi);
 
-  var mosaicNorm = ee.Image.cat([
+  return ee.Image.cat([
     mosaic.select('BLUE_median').clamp(7852.67, 9072.92).unitScale(7852.67, 9072.92).rename('BLUE_median'),
     mosaic.select('BLUE_p20')   .clamp(7852.67, 9072.92).unitScale(7852.67, 9072.92).rename('BLUE_p20'),
     mosaic.select('BLUE_p80')   .clamp(7852.67, 9072.92).unitScale(7852.67, 9072.92).rename('BLUE_p80'),
@@ -117,210 +130,179 @@ function reduceAndNormalize(collection, roi) {
     mosaic.select('EVI2_p20')    .clamp(0.30085, 1.01173).unitScale(0.30085, 1.01173).rename('EVI2_p20'),
     mosaic.select('EVI2_p80')    .clamp(0.30085, 1.01173).unitScale(0.30085, 1.01173).rename('EVI2_p80')
   ]);
-
-  return mosaicNorm;
 }
 
-var mosaic2023 = reduceAndNormalize(col2023, roi);
-var mosaicMT   = mosaic2023.clip(geomMT);
-
-Map.addLayer(mosaicMT, {bands:['NIR_median','SWIR1_median','RED_median'], min:0, max:1}, 'mosaicMT 2023');
-
 // ==============================
-// E) Máscara C10
+// E) Mosaic + C10 export block
 // ==============================
-var c10 = ee.Image('projects/mapbiomas-public/assets/brazil/lulc/collection10/mapbiomas_brazil_collection10_coverage_v2');
-var agriMask2023 = c10.select('classification_2023')
-  .remap([39, 41, 62, 20], [1, 1, 1, 0])
-  .eq(1)
-  .clip(geomMT)
-  .rename('agri');
+if (RUN_EXPORT_MOSAIC_C10) {
+  var col2023 = getCollectionL8L9(startDate, endDate, roi);
+  print('Landsat (L8+L9) 2023 size:', col2023.size());
 
-Map.addLayer(agriMask2023.selfMask(), {palette:['00FF00']}, 'C10 agri mask');
+  var mosaic2023 = reduceAndNormalize(col2023, roi);
+  var mosaicMT   = mosaic2023.clip(geomMT);
 
-// ==============================
-// F) Export por tiles (batch)
-// ==============================
-var idx = 0;
-var exported = 0;
+  Map.addLayer(mosaicMT, {bands:['NIR_median','SWIR1_median','RED_median'], min:0, max:1}, 'mosaicMT 2023');
 
-// helper: Task name não aceita ".", então troca por "p"
-function safeTag(n) {
-  return String(n.toFixed(2)).replace(/\./g, 'p'); // -62.00 -> -62p00
-}
+  var idx = 0;
+  var exported = 0;
 
-for (var lon = LON_MIN; lon < LON_MAX; lon += TILE_DEG) {
-  for (var lat = LAT_MIN; lat < LAT_MAX; lat += TILE_DEG) {
+  for (var lon = LON_MIN; lon < LON_MAX; lon += TILE_DEG) {
+    for (var lat = LAT_MIN; lat < LAT_MAX; lat += TILE_DEG) {
+      if (idx < BATCH_START || idx >= (BATCH_START + BATCH_SIZE)) {
+        idx++;
+        continue;
+      }
 
-    // só cria tasks no intervalo do batch
-    if (idx < BATCH_START || idx >= (BATCH_START + BATCH_SIZE)) {
+      var x0 = lon, y0 = lat, x1 = lon + TILE_DEG, y1 = lat + TILE_DEG;
+      var tile = ee.Geometry.Rectangle([x0, y0, x1, y1], null, false);
+
+      var xTag = safeTag(x0);
+      var yTag = safeTag(y0);
+
+      var nameM = PREFIX + '_mosaic_x' + xTag + '_y' + yTag;
+      var nameK = PREFIX + '_c10mask_x' + xTag + '_y' + yTag;
+
+      var img = mosaicMT.clip(tile);
+      if (EXPORT_U16) img = img.multiply(SCALE_U16).toUint16();
+
+      Export.image.toDrive({
+        image: img,
+        description: nameM,
+        folder: DRIVE_FOLDER,
+        fileNamePrefix: nameM,
+        region: tile,
+        scale: 30,
+        maxPixels: 1e13,
+        fileFormat: 'GeoTIFF',
+        formatOptions: {cloudOptimized: true}
+      });
+
+      Export.image.toDrive({
+        image: agriMask2023.clip(tile).toByte(),
+        description: nameK,
+        folder: DRIVE_FOLDER,
+        fileNamePrefix: nameK,
+        region: tile,
+        scale: 30,
+        maxPixels: 1e13,
+        fileFormat: 'GeoTIFF',
+        formatOptions: {cloudOptimized: true}
+      });
+
+      exported += 2;
       idx++;
-      continue;
     }
-
-    var x0 = lon, y0 = lat, x1 = lon + TILE_DEG, y1 = lat + TILE_DEG;
-    var tile = ee.Geometry.Rectangle([x0, y0, x1, y1], null, false);
-
-    // tags sem ponto
-    var xTag = safeTag(x0);
-    var yTag = safeTag(y0);
-
-    // nomes (sem "." para descrição/task name)
-    var nameM = PREFIX + '_mosaic_x' + xTag + '_y' + yTag;
-    var nameK = PREFIX + '_c10mask_x' + xTag + '_y' + yTag;
-
-    // // MOSAICO (21 bandas)
-    // var img = mosaicMT.clip(tile);
-    // if (EXPORT_U16) img = img.multiply(SCALE_U16).toUint16();
-
-    // Export.image.toDrive({
-    //   image: img,
-    //   description: nameM,
-    //   folder: DRIVE_FOLDER,
-    //   fileNamePrefix: nameM,
-    //   region: tile,
-    //   scale: 30,
-    //   maxPixels: 1e13,
-    //   fileFormat: 'GeoTIFF',
-    //   formatOptions: {cloudOptimized: true}
-    // });
-
-    // // MÁSCARA C10
-    // Export.image.toDrive({
-    //   image: agriMask2023.clip(tile).toByte(),
-    //   description: nameK,
-    //   folder: DRIVE_FOLDER,
-    //   fileNamePrefix: nameK,
-    //   region: tile,
-    //   scale: 30,
-    //   maxPixels: 1e13,
-    //   fileFormat: 'GeoTIFF',
-    //   formatOptions: {cloudOptimized: true}
-    // });
-
-    exported += 2;
-    idx++;
   }
-}
 
-print('Tasks criadas neste batch:', exported);
-print('Batch range:', BATCH_START, 'to', (BATCH_START + BATCH_SIZE - 1));
+  print('Mosaic/C10 tasks created:', exported);
+  print('Batch range:', BATCH_START, 'to', (BATCH_START + BATCH_SIZE - 1));
+}
 
 // ==============================
-// G) EXPORT GT v2 (labels) por tiles (batch)
-// - 0/1 dentro dos polígonos; 255 fora (ignore)
-// - 1 GeoTIFF por tile com 3 bandas: gt_train, gt_test, gt_val
+// F) GTv2 export block
 // ==============================
+if (RUN_EXPORT_GTV2) {
+  var SAMPLES_ASSET = 'projects/ee-rafaelparanhos/assets/SAMPLES_FINAL';
+  var VAL_ASSET     = 'projects/ee-rafaelparanhos/assets/VAL_FINAL';
 
-var SAMPLES_ASSET = 'projects/ee-rafaelparanhos/assets/SAMPLES_FINAL';
-var VAL_ASSET     = 'projects/ee-rafaelparanhos/assets/VAL_FINAL';
+  var seed  = 42;
+  var split = 0.7;
+  var GT_PREFIX = PREFIX + '_gtv2';
+  var USE_C10_FILTER = true;
 
-var seed  = 42;
-var split = 0.7;
+  var samplesRaw = ee.FeatureCollection(SAMPLES_ASSET);
+  var valRaw     = ee.FeatureCollection(VAL_ASSET);
 
-// manter os mesmos params do seu mosaico
-// TILE_DEG, LON_MIN/MAX, LAT_MIN/MAX, BATCH_START/SIZE, DRIVE_FOLDER
-// e manter PREFIX, mas vamos versionar o GT:
-var GT_PREFIX = PREFIX + '_gtv2';  // <- importante p/ não misturar com GT antigo
-
-var samplesRaw = ee.FeatureCollection(SAMPLES_ASSET);
-var valRaw     = ee.FeatureCollection(VAL_ASSET);
-
-function standardizeGT(fc) {
-  return fc.map(function(f){
-    return ee.Feature(f.geometry(), {
-      'class': ee.Number(f.get('class')).toInt(),
-      'id':    ee.Number(f.get('id')).toInt()
+  function standardizeGT(fc) {
+    return fc.map(function(f){
+      return ee.Feature(f.geometry(), {
+        'class': ee.Number(f.get('class')).toInt(),
+        'id':    ee.Number(f.get('id')).toInt()
+      });
     });
-  });
-}
+  }
 
-var samplesStd = standardizeGT(samplesRaw);
-var valStd     = standardizeGT(valRaw);
+  function tagAndFilterByMaskGT(fc, maskImg, scale) {
+    var mask = maskImg.rename('agri');
+    var tagged = fc.map(function(f){
+      var d = mask.reduceRegion({
+        reducer: ee.Reducer.max(),
+        geometry: f.geometry(),
+        scale: scale,
+        maxPixels: 1e7,
+        bestEffort: true,
+        tileScale: 8
+      });
 
-// manter coerência com RF (opcional)
-var USE_C10_FILTER = true;
-
-function tagAndFilterByMaskGT(fc, maskImg, scale) {
-  var mask = maskImg.rename('agri');
-  var tagged = fc.map(function(f){
-    var d = mask.reduceRegion({
-      reducer: ee.Reducer.max(),
-      geometry: f.geometry(),
-      scale: scale,
-      maxPixels: 1e7,
-      bestEffort: true,
-      tileScale: 8
+      var v = ee.Algorithms.If(d.get('agri'), d.get('agri'), 0);
+      return f.set('in_mask', ee.Number(v).toInt());
     });
-    var v = ee.Algorithms.If(d.get('agri'), d.get('agri'), 0);
-    return f.set('in_mask', ee.Number(v).toInt());
-  });
-  return tagged.filter(ee.Filter.eq('in_mask', 1)).select(['class','id']);
-}
 
-var samplesIn = ee.FeatureCollection(ee.Algorithms.If(
-  USE_C10_FILTER, tagAndFilterByMaskGT(samplesStd, agriMask2023, 30), samplesStd
-));
-var valIn = ee.FeatureCollection(ee.Algorithms.If(
-  USE_C10_FILTER, tagAndFilterByMaskGT(valStd, agriMask2023, 30), valStd
-));
+    return tagged.filter(ee.Filter.eq('in_mask', 1)).select(['class','id']);
+  }
 
-var samplesRand = samplesIn.randomColumn('rand', seed);
-var trainPolys  = samplesRand.filter(ee.Filter.lt('rand', split));
-var testPolys   = samplesRand.filter(ee.Filter.gte('rand', split));
-var valPolys    = valIn;
+  function makeLabelImage(fc, bandName) {
+    return ee.Image.constant(255).toByte()
+      .paint(fc, 'class')
+      .rename(bandName);
+  }
 
-// label correto: começa em 255 e pinta 0/1 por cima
-function makeLabelImage(fc, bandName) {
-  return ee.Image.constant(255).toByte()
-    .paint(fc, 'class')
-    .rename(bandName);
-}
+  var samplesStd = standardizeGT(samplesRaw);
+  var valStd     = standardizeGT(valRaw);
 
-var gtTrain = makeLabelImage(trainPolys, 'gt_train');
-var gtTest  = makeLabelImage(testPolys,  'gt_test');
-var gtVal   = makeLabelImage(valPolys,   'gt_val');
-var gtAll   = gtTrain.addBands(gtTest).addBands(gtVal);
+  var samplesIn = ee.FeatureCollection(ee.Algorithms.If(
+    USE_C10_FILTER, tagAndFilterByMaskGT(samplesStd, agriMask2023, 30), samplesStd
+  ));
 
-// debug visual (opcional)
-Map.addLayer(gtTrain.eq(1).selfMask(), {palette:['FF00FF']}, 'GTv2 train == 1');
+  var valIn = ee.FeatureCollection(ee.Algorithms.If(
+    USE_C10_FILTER, tagAndFilterByMaskGT(valStd, agriMask2023, 30), valStd
+  ));
 
-function safeTag(n) {
-  return String(n.toFixed(2)).replace(/\./g, 'p');
-}
+  var samplesRand = samplesIn.randomColumn('rand', seed);
+  var trainPolys  = samplesRand.filter(ee.Filter.lt('rand', split));
+  var testPolys   = samplesRand.filter(ee.Filter.gte('rand', split));
+  var valPolys    = valIn;
 
-var idxGT = 0;
-var exportedGT = 0;
+  var gtTrain = makeLabelImage(trainPolys, 'gt_train');
+  var gtTest  = makeLabelImage(testPolys,  'gt_test');
+  var gtVal   = makeLabelImage(valPolys,   'gt_val');
+  var gtAll   = gtTrain.addBands(gtTest).addBands(gtVal);
 
-for (var lon = LON_MIN; lon < LON_MAX; lon += TILE_DEG) {
-  for (var lat = LAT_MIN; lat < LAT_MAX; lat += TILE_DEG) {
+  Map.addLayer(gtTrain.eq(1).selfMask(), {palette:['FF00FF']}, 'GTv2 train == 1');
 
-    if (idxGT < BATCH_START || idxGT >= (BATCH_START + BATCH_SIZE)) {
+  var idxGT = 0;
+  var exportedGT = 0;
+
+  for (var lonGT = LON_MIN; lonGT < LON_MAX; lonGT += TILE_DEG) {
+    for (var latGT = LAT_MIN; latGT < LAT_MAX; latGT += TILE_DEG) {
+      if (idxGT < BATCH_START || idxGT >= (BATCH_START + BATCH_SIZE)) {
+        idxGT++;
+        continue;
+      }
+
+      var xx0 = lonGT, yy0 = latGT, xx1 = lonGT + TILE_DEG, yy1 = latGT + TILE_DEG;
+      var tileGT = ee.Geometry.Rectangle([xx0, yy0, xx1, yy1], null, false);
+
+      var nameGT = GT_PREFIX + '_x' + safeTag(xx0) + '_y' + safeTag(yy0);
+
+      Export.image.toDrive({
+        image: gtAll.clip(tileGT).toByte(),
+        description: nameGT,
+        folder: DRIVE_FOLDER,
+        fileNamePrefix: nameGT,
+        region: tileGT,
+        scale: 30,
+        maxPixels: 1e13,
+        fileFormat: 'GeoTIFF',
+        formatOptions: {cloudOptimized: true}
+      });
+
+      exportedGT += 1;
       idxGT++;
-      continue;
     }
-
-    var x0 = lon, y0 = lat, x1 = lon + TILE_DEG, y1 = lat + TILE_DEG;
-    var tile = ee.Geometry.Rectangle([x0, y0, x1, y1], null, false);
-
-    var nameGT = GT_PREFIX + '_x' + safeTag(x0) + '_y' + safeTag(y0);
-
-    Export.image.toDrive({
-      image: gtAll.clip(tile).toByte(),
-      description: nameGT,
-      folder: DRIVE_FOLDER,
-      fileNamePrefix: nameGT,
-      region: tile,
-      scale: 30,
-      maxPixels: 1e13,
-      fileFormat: 'GeoTIFF',
-      formatOptions: {cloudOptimized: true}
-    });
-
-    exportedGT += 1;
-    idxGT++;
   }
-}
 
-print('GTv2 tasks criadas:', exportedGT);
-print('Batch:', BATCH_START, 'to', (BATCH_START + BATCH_SIZE - 1));
+  print('GTv2 tasks created:', exportedGT);
+  print('Batch range:', BATCH_START, 'to', (BATCH_START + BATCH_SIZE - 1));
+}

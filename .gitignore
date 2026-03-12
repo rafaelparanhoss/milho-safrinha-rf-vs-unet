@@ -1,2 +1,49 @@
-# Placeholder .gitignore
+# Jupyter
+.ipynb_checkpoints/
 
+# Python cache/build
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment files
+.env
+.env.*
+
+# ML checkpoints / heavy training artifacts
+*.pt
+*.pth
+*.ckpt
+
+# Geospatial rasters and sidecars (large outputs)
+*.tif
+*.tiff
+*.geotiff
+*.vrt
+*.ovr
+*.aux.xml
+*.tfw
+
+# Numpy artifacts / shards
+*.npz
+*.npy
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
