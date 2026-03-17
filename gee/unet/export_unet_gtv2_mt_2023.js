@@ -1,12 +1,12 @@
-/****************************************************
- * UNET GTv2 LABEL EXPORT
- * MT 2023 - tiled / batch
+﻿/****************************************************
+ * EXPORTACAO U-NET DE ROTULOS GTv2
+ * MT 2023 - tiles / lote
  *
- * Purpose:
- * - Build train/test/val labels from SAMPLES_FINAL/VAL_FINAL
- * - Export one GTv2 tile with 3 bands:
+ * Objetivo:
+ * - Construir rotulos de treino/teste/validacao a partir de SAMPLES_FINAL/VAL_FINAL
+ * - Exportar um tile GTv2 com 3 bandas:
  *   gt_train, gt_test, gt_val
- * - Pixels outside polygons are 255 (ignore)
+ * - Pixels fora dos poligonos recebem 255 (ignorar)
  ****************************************************/
 
 // ==============================
@@ -20,7 +20,7 @@ var geomMT   = estadoMT.geometry();
 Map.centerObject(estadoMT, 6);
 
 // ==============================
-// B) Tile/export parameters
+// B) Parametros de tile/exportacao
 // ==============================
 var TILE_DEG = 1.0;
 
@@ -45,7 +45,7 @@ function safeTag(n) {
 }
 
 // ==============================
-// C) C10 agri mask for optional filtering
+// C) Mascara C10 para filtro opcional
 // ==============================
 var c10 = ee.Image('projects/mapbiomas-public/assets/brazil/lulc/collection10/mapbiomas_brazil_collection10_coverage_v2');
 var agriMask2023 = c10.select('classification_2023')
@@ -54,10 +54,10 @@ var agriMask2023 = c10.select('classification_2023')
   .clip(geomMT)
   .rename('agri');
 
-Map.addLayer(agriMask2023.selfMask(), {palette:['00FF00']}, 'C10 agri mask');
+Map.addLayer(agriMask2023.selfMask(), {palette:['00FF00']}, 'Mascara C10 (agri)');
 
 // ==============================
-// D) Assets and label preparation
+// D) Assets e preparacao dos rotulos
 // ==============================
 var SAMPLES_ASSET = 'projects/ee-rafaelparanhos/assets/SAMPLES_FINAL';
 var VAL_ASSET     = 'projects/ee-rafaelparanhos/assets/VAL_FINAL';
@@ -123,7 +123,7 @@ var gtAll   = gtTrain.addBands(gtTest).addBands(gtVal);
 Map.addLayer(gtTrain.eq(1).selfMask(), {palette:['FF00FF']}, 'GTv2 train == 1');
 
 // ==============================
-// E) Export GTv2 tiles
+// E) Exportacao dos tiles GTv2
 // ==============================
 var idxGT = 0;
 var exportedGT = 0;
@@ -157,5 +157,8 @@ for (var lon = LON_MIN; lon < LON_MAX; lon += TILE_DEG) {
   }
 }
 
-print('GTv2 tasks created:', exportedGT);
-print('Batch range:', BATCH_START, 'to', (BATCH_START + BATCH_SIZE - 1));
+print('Tarefas GTv2 criadas:', exportedGT);
+print('Faixa do lote:', BATCH_START, 'to', (BATCH_START + BATCH_SIZE - 1));
+
+
+

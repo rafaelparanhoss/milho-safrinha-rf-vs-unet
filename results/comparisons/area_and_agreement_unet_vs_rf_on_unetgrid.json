@@ -1,0 +1,18 @@
+{
+  "mask_area_ha": 12217087.88996317,
+  "unet_1_area_ha": 6141954.806557293,
+  "unet_0_area_ha": 6075133.083405897,
+  "rf_1_area_ha": 6270847.965428692,
+  "rf_0_area_ha": 5946239.924534527,
+  "agreement_pixels": {
+    "TP": 62136524,
+    "FP": 8176199,
+    "FN": 9651760,
+    "TN": 59895992
+  },
+  "notes": {
+    "valid_mask": "valid = UNET_C10 != 255",
+    "rf_alignment": "RF reamostrado para grade do UNET_C10 (nearest)",
+    "area_crs": "EPSG:5880 (equal-area)"
+  }
+}

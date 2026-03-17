@@ -1,11 +1,11 @@
-/****************************************************
- * UNET MOSAIC + C10 EXPORT
- * MT 2023 (Feb-May) - tiled / batch
+﻿/****************************************************
+ * EXPORTACAO U-NET DE MOSAICO + C10
+ * MT 2023 (Fev-Mai) - tiles / lote
  *
- * Purpose:
- * - Export 21-band normalized mosaic tiles
- * - Export matching C10 mask tiles (agri 0/1)
- * - Keep mosaic unmasked; apply C10 in post-process
+ * Objetivo:
+ * - Exportar tiles do mosaico normalizado com 21 bandas
+ * - Exportar tiles correspondentes da mascara C10 (agri 0/1)
+ * - Manter mosaico sem mascara; aplicar C10 no pos-processamento
  ****************************************************/
 
 // ==============================
@@ -20,7 +20,7 @@ var roi      = geomMT;
 Map.centerObject(estadoMT, 6);
 
 // ==============================
-// B) Export parameters
+// B) Parametros de exportacao
 // ==============================
 var TILE_DEG = 1.0;
 
@@ -116,15 +116,15 @@ function reduceAndNormalize(collection, roi) {
 }
 
 var col2023 = getCollectionL8L9(startDate, endDate, roi);
-print('Landsat (L8+L9) 2023 size:', col2023.size());
+print('Tamanho da colecao Landsat (L8+L9) 2023:', col2023.size());
 
 var mosaic2023 = reduceAndNormalize(col2023, roi);
 var mosaicMT   = mosaic2023.clip(geomMT);
 
-Map.addLayer(mosaicMT, {bands:['NIR_median','SWIR1_median','RED_median'], min:0, max:1}, 'mosaicMT 2023');
+Map.addLayer(mosaicMT, {bands:['NIR_median','SWIR1_median','RED_median'], min:0, max:1}, 'Mosaico MT 2023');
 
 // ==============================
-// D) C10 agri mask
+// D) Mascara agricola C10
 // ==============================
 var c10 = ee.Image('projects/mapbiomas-public/assets/brazil/lulc/collection10/mapbiomas_brazil_collection10_coverage_v2');
 var agriMask2023 = c10.select('classification_2023')
@@ -133,10 +133,10 @@ var agriMask2023 = c10.select('classification_2023')
   .clip(geomMT)
   .rename('agri');
 
-Map.addLayer(agriMask2023.selfMask(), {palette:['00FF00']}, 'C10 agri mask');
+Map.addLayer(agriMask2023.selfMask(), {palette:['00FF00']}, 'Mascara C10 (agri)');
 
 // ==============================
-// E) Export mosaic + c10mask by tile
+// E) Exportacao de mosaico + c10mask por tile
 // ==============================
 var idx = 0;
 var exported = 0;
@@ -189,5 +189,9 @@ for (var lon = LON_MIN; lon < LON_MAX; lon += TILE_DEG) {
   }
 }
 
-print('Mosaic/C10 tasks created:', exported);
-print('Batch range:', BATCH_START, 'to', (BATCH_START + BATCH_SIZE - 1));
+print('Tarefas de mosaico/C10 criadas:', exported);
+print('Faixa do lote:', BATCH_START, 'to', (BATCH_START + BATCH_SIZE - 1));
+
+
+
+

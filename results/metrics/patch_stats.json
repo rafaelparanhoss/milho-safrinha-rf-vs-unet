@@ -1,0 +1,20 @@
+{
+  "train": {
+    "kept": 3000,
+    "pos": 1500,
+    "neg": 1500,
+    "shards": 94
+  },
+  "val": {
+    "kept": 600,
+    "pos": 300,
+    "neg": 300,
+    "shards": 19
+  },
+  "test": {
+    "kept": 600,
+    "pos": 300,
+    "neg": 300,
+    "shards": 19
+  }
+}

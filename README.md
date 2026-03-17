@@ -1,85 +1,75 @@
-# Milho Safrinha RF vs U-Net (MT 2023)
+﻿# Milho Safrinha RF vs U-Net (MT 2023)
 
-Comparative workflow for second-crop corn mapping in Mato Grosso (Brazil), using:
-- Random Forest (GEE)
-- U-Net (GEE exports + local training/inference notebooks)
+## Contexto do projeto
+Este repositório documenta um fluxo comparativo para mapeamento de milho safrinha no estado de Mato Grosso (MT), comparando duas abordagens:
+- Random Forest (RF) no Google Earth Engine (GEE)
+- U-Net com exportações do GEE e execução em notebooks
 
-This repository is organized for portfolio/publication while preserving the original scientific and methodological logic used in the project.
+## Objetivo
+Manter uma base reproduzível e organizada para portfólio, preservando exatamente a lógica metodológica utilizada no projeto.
 
-## Problem and Context
-The project compares a classical pixel-based model (RF) and a deep learning segmentation model (U-Net) for milho safrinha mapping in the same study area/time window and with aligned post-processing.
+## Área de estudo e período
+- Área: Mato Grosso (MT), filtrado por `SIGLA_UF = "MT"`
+- Asset de limite estadual: `projects/ee-rafaelparanhos/assets/UF`
+- Período: `2023-02-01` a `2023-05-31`
 
-## Study Area and Period
-- Area: Mato Grosso (MT), filtered by `SIGLA_UF = "MT"` in GEE scripts
-- Period: `2023-02-01` to `2023-05-31`
+## Comparação entre Random Forest e U-Net
+### Random Forest (RF)
+- Treino e inferência no GEE
+- Preditores Landsat 8/9 C2 L2 + EVI2
+- Máscara agrícola MapBiomas C10
+- Exporta mapas e tabelas de predição
 
-## RF vs U-Net (high-level)
-- RF path:
-  - Training/inference in GEE using Landsat 8/9 C2 L2 predictors + MapBiomas C10 agricultural mask
-  - Main outputs include RF maps and prediction CSVs
-- U-Net path:
-  - Input/label tiles exported from GEE
-  - Local notebook pipeline for shard generation, training, validation, prediction, and C10 post-processing
+### U-Net
+- Exporta tiles de mosaico/C10 e GTv2 no GEE
+- Gera shards, treina, valida, prediz e pós-processa via notebooks
+- Pós-processamento final oficial em `notebooks/unet/05_unet_postprocess_c10.ipynb`
 
-## Data Sources
-- Landsat 8/9 Collection 2 Level-2 (`LANDSAT/LC08/C02/T1_L2`, `LANDSAT/LC09/C02/T1_L2`)
-- MapBiomas Collection 10 (`projects/mapbiomas-public/assets/brazil/lulc/collection10/mapbiomas_brazil_collection10_coverage_v2`)
-- GEE sample assets:
+## Fontes de dados
+- Landsat 8/9 C2 L2: `LANDSAT/LC08/C02/T1_L2`, `LANDSAT/LC09/C02/T1_L2`
+- MapBiomas C10: `projects/mapbiomas-public/assets/brazil/lulc/collection10/mapbiomas_brazil_collection10_coverage_v2`
+- Amostras GEE:
   - `projects/ee-rafaelparanhos/assets/SAMPLES_FINAL`
   - `projects/ee-rafaelparanhos/assets/VAL_FINAL`
   - `projects/ee-rafaelparanhos/assets/UF`
 
-## Repository Structure
+## Estrutura do repositório
 ```text
 gee/
   rf/
     export_c10_mask_mt_2023.js
     rf_mt_2023_c10.js
   unet/
-    export_unet_mosaic_c10_mt_2023.js      # canonical: mosaic + c10mask export
-    export_unet_gtv2_mt_2023.js            # canonical: GTv2 label export
+    export_unet_mosaic_c10_mt_2023.js
+    export_unet_gtv2_mt_2023.js
 
 notebooks/
   unet/
-    01_unet_preprocess_shards.ipynb
-    02_unet_train_run1.ipynb
-    03_unet_validation_run1.ipynb
-    04_unet_predict_mt.ipynb
-    05_unet_postprocess_c10.ipynb
   qa/
-    qa_tiles_validation.ipynb
-    qa_shards_validation.ipynb
   analysis/
-    analysis_unet_vs_rf_metrics.ipynb
-    analysis_unet_vs_rf_area.ipynb
   archive/
-    archive_unet_tiles_align_local.ipynb
-    archive_shards_validation2.ipynb
 
 docs/
-  pipeline_map.md
-  experiment_log.md
+  visao_geral.md
+  referencias_dados.md
 
-data_reference/
-  sources.md
-  assets.md
-  outputs.md
+results/
+  metrics/
+  comparisons/
 ```
 
-## Main Canonical Pipeline
-1. RF mask export: `gee/rf/export_c10_mask_mt_2023.js`
-2. RF model and outputs: `gee/rf/rf_mt_2023_c10.js`
-3. U-Net mosaic/mask export: `gee/unet/export_unet_mosaic_c10_mt_2023.js`
-4. U-Net GTv2 export: `gee/unet/export_unet_gtv2_mt_2023.js`
-5. U-Net preprocessing: `notebooks/unet/01_unet_preprocess_shards.ipynb`
-6. U-Net training: `notebooks/unet/02_unet_train_run1.ipynb`
-7. U-Net validation: `notebooks/unet/03_unet_validation_run1.ipynb`
-8. U-Net prediction: `notebooks/unet/04_unet_predict_mt.ipynb`
-9. U-Net final post-process: `notebooks/unet/05_unet_postprocess_c10.ipynb`
-10. QA checkpoints: `notebooks/qa/*`
-11. Complementary analysis: `notebooks/analysis/*`
+## Fluxo principal
+1. `gee/rf/export_c10_mask_mt_2023.js`
+2. `gee/rf/rf_mt_2023_c10.js`
+3. `gee/unet/export_unet_mosaic_c10_mt_2023.js`
+4. `gee/unet/export_unet_gtv2_mt_2023.js`
+5. `notebooks/unet/01_unet_preprocess_shards.ipynb`
+6. `notebooks/unet/02_unet_train_run1.ipynb`
+7. `notebooks/unet/03_unet_validation_run1.ipynb`
+8. `notebooks/unet/04_unet_predict_mt.ipynb`
+9. `notebooks/unet/05_unet_postprocess_c10.ipynb`
 
-## Main Outputs
+## Principais saídas
 - RF:
   - `rf_milho_mt_2023_c10.tif`
   - `rf_milho_mask1_mt_2023_c10.tif`
@@ -88,27 +78,21 @@ data_reference/
   - `unet_mt_2023_mosaic_x*_y*.tif`
   - `unet_mt_2023_c10mask_x*_y*.tif`
   - `unet_mt_2023_gtv2_x*_y*.tif`
-  - shard datasets (`*.npz`), checkpoints (`best.pt`, `last.pt`)
+  - `best.pt`, `last.pt`
+  - `/content/drive/MyDrive/unet_preds_mt2023_v1/unet_mt2023_pred_full.tif`
   - `unet_mt2023_pred_c10.tif`
-- Comparison:
-  - metrics/area JSON and CSV artifacts generated by analysis notebooks
+- Resultados auxiliares versionados:
+  - `results/metrics/*`
+  - `results/comparisons/*`
 
-## Limitations
-- Paths in notebooks are configured for Google Drive/Colab and local runtime assumptions.
-- Execution still depends on GEE account permissions and available assets in the target environment.
-- Large output artifacts are intentionally not versioned in this repository.
+## Observações sobre analysis e archive
+- `notebooks/analysis/*`: camada complementar de análise/comparação (não substitui o fluxo canônico)
+- `notebooks/archive/*`: material legado para rastreabilidade
 
-## Current Status
-- Canonical RF and U-Net flows are documented and separated operationally.
-- Official U-Net baseline uses one run: `unet_mt2023_v2_run1`.
-- Official full prediction output path: `/content/drive/MyDrive/unet_preds_mt2023_v1/unet_mt2023_pred_full.tif`.
-- `analysis/` notebooks are complementary (not canonical execution path).
-- `archive/` notebooks are legacy and kept for traceability.
+## Situação atual do projeto
+- Fluxo canônico RF e U-Net consolidado
+- Documentação consolidada em português
+- Resultados de métricas e comparações adicionados em `results/`
+- Repositório preparado para apresentação no GitHub
 
-## Notes
-- This repository does not claim new results in README text; it documents code/workflow only.
-- For operational details and dependencies, see:
-  - `docs/pipeline_map.md`
-  - `docs/experiment_log.md`
-  - `data_reference/assets.md`
-  - `data_reference/outputs.md`
+
