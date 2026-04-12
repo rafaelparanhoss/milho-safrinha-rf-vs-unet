@@ -2,8 +2,6 @@
 
 Comparação reprodutível entre um baseline Random Forest no Google Earth Engine e uma U-Net treinada com exportações do GEE para mapear milho safrinha em Mato Grosso.
 
-![Destaque do projeto: comparação espacial entre RF e U-Net em Mato Grosso](docs/showcase/03_comparacao_estadual_rf_unet.png)
-
 ## Visão geral
 
 Este repositório organiza um experimento comparativo de mapeamento de milho safrinha em `MT` no ciclo de `2023-02-01` a `2023-05-31`, mantendo o fluxo operacional original do projeto.
@@ -148,17 +146,6 @@ Há uma publicação externa que resume o contexto, o fluxo comparativo e o posi
 Ela funciona como uma camada pública de apresentação, enquanto este repositório concentra os artefatos técnicos e a reprodutibilidade.
 
 [Ver publicação no LinkedIn](https://www.linkedin.com/feed/update/urn:li:activity:7440004304092086273/?originTrackingId=275ulkavzYGFzjt6Qp4ypA%3D%3D)
-
-## Limitações
-
-- O escopo atual é um recorte único: `MT 2023`.
-- A comparação representa um fluxo canônico de RF e um fluxo canônico de U-Net, não uma busca exaustiva de hiperparâmetros.
-- A referência ao IBGE aparece como leitura do projeto, mas não está consolidada em tabela própria dentro de `results/`.
-
-## Próximos passos
-
-- Expandir a mesma comparação para novos recortes temporais ou geográficos.
-- Empacotar o fluxo em uma camada operacional mais direta, sem perder a rastreabilidade dos artefatos atuais.
 
 ## Autor
 
