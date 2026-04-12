@@ -1,39 +1,92 @@
-﻿# Milho Safrinha RF vs U-Net (MT 2023)
+# Milho Safrinha RF vs U-Net (MT 2023)
 
-## Contexto do projeto
-Este repositório documenta um fluxo comparativo para mapeamento de milho safrinha no estado de Mato Grosso (MT), comparando duas abordagens:
-- Random Forest (RF) no Google Earth Engine (GEE)
-- U-Net com exportações do GEE e execução em notebooks
+Comparação reprodutível entre um baseline Random Forest no Google Earth Engine e uma U-Net treinada com exportações do GEE para mapear milho safrinha em Mato Grosso.
 
-## Objetivo
-Manter uma base reproduzível e organizada para portfólio, preservando exatamente a lógica metodológica utilizada no projeto.
+![Destaque do projeto: métricas de validação entre RF e U-Net](docs/showcase/02_metricas_validacao.png)
 
-## Área de estudo e período
-- Área: Mato Grosso (MT), filtrado por `SIGLA_UF = "MT"`
-- Asset de limite estadual: `projects/ee-rafaelparanhos/assets/UF`
-- Período: `2023-02-01` a `2023-05-31`
+## Visão geral
 
-## Comparação entre Random Forest e U-Net
-### Random Forest (RF)
-- Treino e inferência no GEE
-- Preditores Landsat 8/9 C2 L2 + EVI2
-- Máscara agrícola MapBiomas C10
-- Exporta mapas e tabelas de predição
+Este repositório organiza um experimento comparativo de mapeamento de milho safrinha em `MT` no ciclo de `2023-02-01` a `2023-05-31`, mantendo o fluxo operacional original do projeto.
 
-### U-Net
-- Exporta tiles de mosaico/C10 e GTv2 no GEE
-- Gera shards, treina, valida, prediz e pós-processa via notebooks
-- Pós-processamento final oficial em `notebooks/unet/05_unet_postprocess_c10.ipynb`
+- RF no GEE como baseline robusto e mais simples de operar.
+- U-Net com exportações do GEE, geração de shards, treino, validação, predição e pós-processamento em notebooks.
+- Mesma área de estudo, mesma janela temporal e mesma máscara agrícola para sustentar uma comparação controlada.
+- Detalhes complementares em [docs/visao_geral.md](docs/visao_geral.md) e [docs/referencias_dados.md](docs/referencias_dados.md).
 
-## Fontes de dados
-- Landsat 8/9 C2 L2: `LANDSAT/LC08/C02/T1_L2`, `LANDSAT/LC09/C02/T1_L2`
-- MapBiomas C10: `projects/mapbiomas-public/assets/brazil/lulc/collection10/mapbiomas_brazil_collection10_coverage_v2`
-- Amostras GEE:
-  - `projects/ee-rafaelparanhos/assets/SAMPLES_FINAL`
-  - `projects/ee-rafaelparanhos/assets/VAL_FINAL`
-  - `projects/ee-rafaelparanhos/assets/UF`
+## Pergunta que o projeto responde
+
+> Com os mesmos insumos Landsat 8/9 + EVI2 + máscara agrícola MapBiomas C10, quanto uma U-Net melhora o mapeamento de milho safrinha em MT 2023 em relação a um Random Forest executado integralmente no GEE?
+
+## Resultados em destaque
+
+- Comparação controlada entre RF e U-Net em `MT 2023`, com avaliação pixel a pixel em `VAL_FINAL` e alinhamento espacial na mesma referência.
+- Insumos comuns às duas abordagens: Landsat `8/9 C2 L2`, `EVI2` e máscara agrícola `MapBiomas C10`.
+- A U-Net teve vantagem consistente nas métricas versionadas e, no material visual do projeto, aparece com melhor coerência espacial.
+- O RF permaneceu como baseline forte para comparação, com menor complexidade operacional e execução direta no GEE.
+- As estimativas de área dos dois modelos ficaram próximas entre si dentro da máscara agrícola, ao mesmo tempo em que o projeto registra a leitura de subestimação frente ao IBGE.
+
+| Modelo | Precisão | Revocação | F1 | IoU | Acurácia |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| U-Net | 0.9823 | 0.9930 | 0.9876 | 0.9755 | 0.9884 |
+| RF | 0.9804 | 0.9913 | 0.9858 | 0.9720 | 0.9867 |
+
+- Área estimada na comparação alinhada em `EPSG:5880`: U-Net `~6,14 Mha` e RF `~6,27 Mha`.
+- Evidências versionadas: [table_metrics_valfinal_unet_vs_rf.csv](results/comparisons/table_metrics_valfinal_unet_vs_rf.csv), [resultados_valfinal_unet_vs_rf.md](results/comparisons/resultados_valfinal_unet_vs_rf.md) e [area_and_agreement_unet_vs_rf_on_unetgrid.json](results/comparisons/area_and_agreement_unet_vs_rf_on_unetgrid.json).
+
+## Showcase visual
+
+Nota: faltam imagens para completar o showcase neste commit: `docs/showcase/01_fluxo_experimento.png`, `docs/showcase/03_comparacao_estadual_rf_unet.png`, `docs/showcase/04_comparacao_area_1.png`, `docs/showcase/05_comparacao_area_2.png` e `docs/showcase/06_comparacao_area_3.png`.
+
+### Fluxo metodológico
+
+Imagem pendente: `docs/showcase/01_fluxo_experimento.png`
+
+### Métricas
+
+![Métricas de validação entre U-Net e RF](docs/showcase/02_metricas_validacao.png)
+
+### Comparação espacial estadual
+
+Imagem pendente: `docs/showcase/03_comparacao_estadual_rf_unet.png`
+
+### Recorte local 1
+
+Imagem pendente: `docs/showcase/04_comparacao_area_1.png`
+
+### Recorte local 2
+
+Imagem pendente: `docs/showcase/05_comparacao_area_2.png`
+
+### Recorte local 3
+
+Imagem pendente: `docs/showcase/06_comparacao_area_3.png`
+
+## Dados utilizados
+
+- Área de estudo: Mato Grosso (`SIGLA_UF = "MT"`), a partir do asset `projects/ee-rafaelparanhos/assets/UF`.
+- Período do mosaico e da comparação: `2023-02-01` a `2023-05-31`.
+
+| Fonte | Papel no projeto |
+| --- | --- |
+| `LANDSAT/LC08/C02/T1_L2` e `LANDSAT/LC09/C02/T1_L2` | Base espectral do mosaico 2023 para RF e U-Net |
+| `EVI2` | Índice espectral usado como parte dos preditores |
+| `projects/mapbiomas-public/assets/brazil/lulc/collection10/mapbiomas_brazil_collection10_coverage_v2` | Máscara agrícola C10 |
+| `projects/ee-rafaelparanhos/assets/SAMPLES_FINAL` | Amostras de treino do RF |
+| `projects/ee-rafaelparanhos/assets/VAL_FINAL` | Base de validação comparativa |
+| `projects/ee-rafaelparanhos/assets/UF` | Limite estadual |
+
+## Comparação entre as abordagens
+
+| Aspecto | RF no GEE | U-Net com GEE + notebooks |
+| --- | --- | --- |
+| Execução | Treino e inferência no próprio GEE | Exporta mosaico/C10 e GTv2 no GEE; treina, valida, prediz e pós-processa em notebooks |
+| Papel no projeto | Baseline robusto e simples operacionalmente | Abordagem de maior desempenho no experimento |
+| Força principal | Fluxo direto, menor atrito operacional | Vantagem consistente nas métricas e melhor coerência espacial |
+| Trade-off | Menor flexibilidade para modelagem espacial fina | Mais etapas e mais artefatos para controlar |
+| Saídas centrais | Mapas RF e tabelas `rf_*Pred_mt_2023_c10.csv` | Tiles, shards, checkpoints e mapa final pós-processado |
 
 ## Estrutura do repositório
+
 ```text
 gee/
   rf/
@@ -50,6 +103,7 @@ notebooks/
   archive/
 
 docs/
+  showcase/
   visao_geral.md
   referencias_dados.md
 
@@ -58,7 +112,11 @@ results/
   comparisons/
 ```
 
+- `notebooks/analysis/` permanece como camada complementar de comparação e análise.
+- `notebooks/archive/` permanece como material legado para rastreabilidade.
+
 ## Fluxo principal
+
 1. `gee/rf/export_c10_mask_mt_2023.js`
 2. `gee/rf/rf_mt_2023_c10.js`
 3. `gee/unet/export_unet_mosaic_c10_mt_2023.js`
@@ -70,29 +128,37 @@ results/
 9. `notebooks/unet/05_unet_postprocess_c10.ipynb`
 
 ## Principais saídas
+
 - RF:
-  - `rf_milho_mt_2023_c10.tif`
-  - `rf_milho_mask1_mt_2023_c10.tif`
-  - `rf_*Pred_mt_2023_c10.csv`
+  `rf_milho_mt_2023_c10.tif`, `rf_milho_mask1_mt_2023_c10.tif`, `rf_*Pred_mt_2023_c10.csv`
 - U-Net:
-  - `unet_mt_2023_mosaic_x*_y*.tif`
-  - `unet_mt_2023_c10mask_x*_y*.tif`
-  - `unet_mt_2023_gtv2_x*_y*.tif`
-  - `best.pt`, `last.pt`
-  - `/content/drive/MyDrive/unet_preds_mt2023_v1/unet_mt2023_pred_full.tif`
-  - `unet_mt2023_pred_c10.tif`
-- Resultados auxiliares versionados:
-  - `results/metrics/*`
-  - `results/comparisons/*`
+  `unet_mt_2023_mosaic_x*_y*.tif`, `unet_mt_2023_c10mask_x*_y*.tif`, `unet_mt_2023_gtv2_x*_y*.tif`, `best.pt`, `last.pt`, `unet_mt2023_pred_c10.tif`
+- Resultados versionados:
+  [results/metrics/](results/metrics/), [results/comparisons/](results/comparisons/)
 
-## Observações sobre analysis e archive
-- `notebooks/analysis/*`: camada complementar de análise/comparação (não substitui o fluxo canônico)
-- `notebooks/archive/*`: material legado para rastreabilidade
+## Reprodutibilidade
 
-## Situação atual do projeto
-- Fluxo canônico RF e U-Net consolidado
-- Documentação consolidada em português
-- Resultados de métricas e comparações adicionados em `results/`
-- Repositório preparado para apresentação no GitHub
+- A lógica do projeto permanece a mesma: rode os scripts GEE e os notebooks na ordem listada em **Fluxo principal**.
+- O run canônico da U-Net é `unet_mt2023_v2_run1`, com checkpoints `best.pt` e `last.pt`.
+- O conjunto documentado para a U-Net registra `94` shards de treino, `19` de validação e `19` de teste, totalizando `3000/600/600` patches em [patch_stats.json](results/metrics/patch_stats.json).
+- As métricas do teste da U-Net estão em [test_metrics.json](results/metrics/test_metrics.json).
+- A comparação final entre U-Net e RF está consolidada em [results/comparisons/](results/comparisons/).
 
+## Limitações
 
+- O escopo atual é um recorte único: `MT 2023`.
+- A comparação representa um fluxo canônico de RF e um fluxo canônico de U-Net, não uma busca exaustiva de hiperparâmetros.
+- A leitura visual completa do showcase depende das imagens ainda ausentes em `docs/showcase/`.
+- A referência ao IBGE aparece como leitura do projeto, mas não está consolidada em tabela própria dentro de `results/`.
+
+## Próximos passos
+
+- Completar o pacote visual em `docs/showcase/` com o fluxo, a comparação estadual e os três recortes locais.
+- Expandir a mesma comparação para novos recortes temporais ou geográficos.
+- Empacotar o fluxo em uma camada operacional mais direta, sem perder a rastreabilidade dos artefatos atuais.
+
+## Autor
+
+Rafael Paranhos
+
+Projeto de portfólio técnico em sensoriamento remoto, Google Earth Engine e deep learning aplicado ao mapeamento agrícola.
