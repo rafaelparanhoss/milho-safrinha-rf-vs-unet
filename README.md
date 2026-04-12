@@ -2,7 +2,7 @@
 
 Comparação reprodutível entre um baseline Random Forest no Google Earth Engine e uma U-Net treinada com exportações do GEE para mapear milho safrinha em Mato Grosso.
 
-![Destaque do projeto: métricas de validação entre RF e U-Net](docs/showcase/02_metricas_validacao.png)
+![Destaque do projeto: comparação espacial entre RF e U-Net em Mato Grosso](docs/showcase/03_comparacao_estadual_rf_unet.png)
 
 ## Visão geral
 
@@ -21,9 +21,9 @@ Este repositório organiza um experimento comparativo de mapeamento de milho saf
 
 - Comparação controlada entre RF e U-Net em `MT 2023`, com avaliação pixel a pixel em `VAL_FINAL` e alinhamento espacial na mesma referência.
 - Insumos comuns às duas abordagens: Landsat `8/9 C2 L2`, `EVI2` e máscara agrícola `MapBiomas C10`.
-- A U-Net teve vantagem consistente nas métricas versionadas e, no material visual do projeto, aparece com melhor coerência espacial.
+- A U-Net teve vantagem consistente nas métricas versionadas e também aparece com melhor coerência espacial nos mapas e recortes do showcase.
 - O RF permaneceu como baseline forte para comparação, com menor complexidade operacional e execução direta no GEE.
-- As estimativas de área dos dois modelos ficaram próximas entre si dentro da máscara agrícola, ao mesmo tempo em que o projeto registra a leitura de subestimação frente ao IBGE.
+- O material de análise do projeto registra subestimação de área frente ao IBGE, mas mantendo consistência entre os dois modelos.
 
 | Modelo | Precisão | Revocação | F1 | IoU | Acurácia |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -35,11 +35,9 @@ Este repositório organiza um experimento comparativo de mapeamento de milho saf
 
 ## Showcase visual
 
-Nota: faltam imagens para completar o showcase neste commit: `docs/showcase/01_fluxo_experimento.png`, `docs/showcase/03_comparacao_estadual_rf_unet.png`, `docs/showcase/04_comparacao_area_1.png`, `docs/showcase/05_comparacao_area_2.png` e `docs/showcase/06_comparacao_area_3.png`.
-
 ### Fluxo metodológico
 
-Imagem pendente: `docs/showcase/01_fluxo_experimento.png`
+![Fluxo metodológico do experimento](docs/showcase/01_fluxo_experimento.png)
 
 ### Métricas
 
@@ -47,19 +45,19 @@ Imagem pendente: `docs/showcase/01_fluxo_experimento.png`
 
 ### Comparação espacial estadual
 
-Imagem pendente: `docs/showcase/03_comparacao_estadual_rf_unet.png`
+![Comparação espacial estadual entre RF e U-Net](docs/showcase/03_comparacao_estadual_rf_unet.png)
 
 ### Recorte local 1
 
-Imagem pendente: `docs/showcase/04_comparacao_area_1.png`
+![Recorte local 1 comparando mosaico, RF e U-Net](docs/showcase/04_comparacao_area_1.png)
 
 ### Recorte local 2
 
-Imagem pendente: `docs/showcase/05_comparacao_area_2.png`
+![Recorte local 2 comparando mosaico, RF e U-Net](docs/showcase/05_comparacao_area_2.png)
 
 ### Recorte local 3
 
-Imagem pendente: `docs/showcase/06_comparacao_area_3.png`
+![Recorte local 3 comparando mosaico, RF e U-Net](docs/showcase/06_comparacao_area_3.png)
 
 ## Dados utilizados
 
@@ -144,16 +142,21 @@ results/
 - As métricas do teste da U-Net estão em [test_metrics.json](results/metrics/test_metrics.json).
 - A comparação final entre U-Net e RF está consolidada em [results/comparisons/](results/comparisons/).
 
+## Post público sobre o projeto
+
+Há uma publicação externa que resume o contexto, o fluxo comparativo e o posicionamento do projeto em formato mais curto.
+Ela funciona como uma camada pública de apresentação, enquanto este repositório concentra os artefatos técnicos e a reprodutibilidade.
+
+[Ver publicação no LinkedIn](https://www.linkedin.com/feed/update/urn:li:activity:7440004304092086273/?originTrackingId=275ulkavzYGFzjt6Qp4ypA%3D%3D)
+
 ## Limitações
 
 - O escopo atual é um recorte único: `MT 2023`.
 - A comparação representa um fluxo canônico de RF e um fluxo canônico de U-Net, não uma busca exaustiva de hiperparâmetros.
-- A leitura visual completa do showcase depende das imagens ainda ausentes em `docs/showcase/`.
 - A referência ao IBGE aparece como leitura do projeto, mas não está consolidada em tabela própria dentro de `results/`.
 
 ## Próximos passos
 
-- Completar o pacote visual em `docs/showcase/` com o fluxo, a comparação estadual e os três recortes locais.
 - Expandir a mesma comparação para novos recortes temporais ou geográficos.
 - Empacotar o fluxo em uma camada operacional mais direta, sem perder a rastreabilidade dos artefatos atuais.
 
